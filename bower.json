@@ -1,14 +1,14 @@
 {
   "name": "purescript-indexeddb",
   "version": "0.0.1",
-  "homepage": "https://github.com/rtfeldman/purescript-indexeddb",
+  "homepage": "https://github.com/sgraf812/purescript-indexeddb",
   "authors": [
-    "Richard Feldman <richard.t.feldman@gmail.com>"
+    "Richard Feldman <richard.t.feldman@gmail.com>",
+    "Sebastian Graf <sgraf1337@gmail.com>"
   ],
   "description": "Streaming interface to IndexedDB for PureScript.",
-  "main": "IDBStream.purs",
   "moduleType": [
-    "es6"
+    "node"
   ],
   "keywords": [
     "purescript",
@@ -19,13 +19,13 @@
     "**/.*",
     "node_modules",
     "bower_components",
-    "test",
-    "tests"
+    "output"
   ],
   "dependencies": {
-    "purescript-either": "~0.1.3",
-    "purescript-transformers": "~0.2.1",
-    "purescript-dom": "~0.1.1",
-    "purescript-foreign": "~0.2.0"
+    "purescript-console": "^0.1.0",
+    "purescript-aff": "~0.13.0",
+    "purescript-eff": "~0.1.1",
+    "purescript-prelude": "~0.1.3",
+    "purescript-either": "~0.2.3"
   }
 }

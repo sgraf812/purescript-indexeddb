@@ -1,6 +1,5 @@
-dist
-node_modules
-bower_components
-.DS_Store
-.psci
-
+/bower_components/
+/node_modules/
+/output/
+/.psci*
+/src/.webpack.js
