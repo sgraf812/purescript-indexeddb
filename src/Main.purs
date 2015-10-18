@@ -9,14 +9,15 @@ import Control.Monad.Aff
 import IndexedDB (UpgradeNeededEvent(), IDB())
 import qualified IndexedDB as IDB
 
-upgrade :: forall eff. UpgradeNeededEvent -> Eff (console :: CONSOLE | eff) Unit
+upgrade
+  :: forall eff
+   . UpgradeNeededEvent
+  -> Eff (console :: CONSOLE, idb :: IDB | eff) Unit
 upgrade evt = do
-  log "hi"
-  print evt.old
-  print evt.new
+  store <- IDB.createObjectStore evt.db "hello" []
   pure unit
 
 
 main = launchAff do
   db <- attempt $ IDB.open "hi" 1 upgrade
-  either (const $ liftEff $ log "error") (const $ liftEff $ log "success") db
+  either (liftEff <<< print) (const $ liftEff $ log "success") db
