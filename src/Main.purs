@@ -1,20 +1,22 @@
 module Main where
 
 import Prelude
+import Data.Maybe
 import Data.Either
 import Control.Monad.Eff
 import Control.Monad.Eff.Console
 import Control.Monad.Eff.Class
 import Control.Monad.Aff
-import IndexedDB (UpgradeNeededEvent(), IDB())
+import IndexedDB (UpgradeNeededEvent(), IDB(), CreateObjectStoreOptions(..))
 import qualified IndexedDB as IDB
 
 upgrade
   :: forall eff
    . UpgradeNeededEvent
-  -> Eff (console :: CONSOLE, idb :: IDB | eff) Unit
+  -> Eff _ Unit
 upgrade evt = do
-  store <- IDB.createObjectStore evt.db "hello" []
+  log "hi"
+  store <- IDB.createObjectStore evt.db "hello" (KeyPath ["id", "id2"])
   pure unit
 
 

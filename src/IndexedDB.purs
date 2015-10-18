@@ -1,10 +1,11 @@
 module IndexedDB
   ( IDB(), Version(), Connection(), Transaction(), ObjectStore()
-  , UpgradeNeededEvent(), CreateObjectStoreOptions()
+  , UpgradeNeededEvent(), CreateObjectStoreOptions(..)
   , open, createObjectStore
   ) where
 
 import Prelude
+import Data.Maybe
 import Data.Either
 import Data.Function
 import Control.Monad.Aff
@@ -30,7 +31,7 @@ type UpgradeNeededEvent =
 
 data CreateObjectStoreOptions
   = KeyPath (Array String)
-  | AutoIncrement
+  | AutoIncrement (Maybe String)
 
 
 foreign import openNative
@@ -40,7 +41,7 @@ foreign import openNative
       Version
       (Connection -> Eff (idb :: IDB | eff) Unit)
       (Error -> Eff (idb :: IDB | eff) Unit)
-      (Version -> Version -> Connection -> Transaction -> Eff (idb :: IDB | eff) Unit)
+      (UpgradeNeededEvent -> Eff (idb :: IDB | eff) Unit)
       (Eff (idb :: IDB | eff) Unit)
 
 
@@ -49,7 +50,7 @@ foreign import createObjectStoreNative
    . Fn3
       Connection
       String
-      (Array CreateObjectStoreOptions)
+      CreateObjectStoreOptions
       (Eff (idb :: IDB | eff) ObjectStore)
 
 
@@ -62,16 +63,14 @@ open
 open name version upgrade =
   makeAff
     (\error success ->
-      runFn5 openNative name version success error
-        (\old new db transaction ->
-          upgrade { old: old, new: new, db: db, transaction: transaction }))
+      runFn5 openNative name version success error upgrade)
 
 
 createObjectStore
   :: forall eff
    . Connection
   -> String
-  -> Array CreateObjectStoreOptions
+  -> CreateObjectStoreOptions
   -> (Eff (idb :: IDB | eff) ObjectStore)
 createObjectStore db name options =
   runFn3 createObjectStoreNative db name options

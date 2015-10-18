@@ -9,17 +9,20 @@ exports.openNative = function(dbName, version, onSuccess, onFailure, onUpgradeNe
 
       try {
         request = indexedDB.open(dbName, version);
-        console.log("Created request" + request);
       } catch (exception) {
         onFailure(exception)();
       }
 
       request.onupgradeneeded = function(event) {
-        onUpgradeNeeded(event.oldVersion)(event.newVersion)(event.target.result)(event.target.transaction)();
+        onUpgradeNeeded({
+          old: event.oldVersion,
+          new: event.newVersion,
+          db: event.target.result,
+          transaction: event.target.transaction
+        })();
       };
 
       request.onsuccess = function(event) {
-        console.log("Created db " + event.target.result);
         onSuccess(event.target.result)();
       }
 
@@ -32,16 +35,19 @@ exports.openNative = function(dbName, version, onSuccess, onFailure, onUpgradeNe
   };
 };
 
-exports.createObjectStoreNative = function(db, name, updates) {
+exports.createObjectStoreNative = function(db, name, options) {
   return function() {
+    var Data_Maybe = PS["Data.Maybe"] || {};
     var o = {};
 
-    for (var i = 0; i < updates.length; ++i) {
-      var u = updates[i];
-      if (u instanceof KeyPath) {
-        o.keyPath = u.value0;
-      } else if (u instanceof AutoIncrement) {
-        o.autoIncrement = true;
+    if (exports.KeyPath && options instanceof exports.KeyPath) {
+      o.keyPath = options.value0;
+    } else if (exports.AutoIncrement && options instanceof exports.AutoIncrement) {
+      o.autoIncrement = true;
+      var m = options.value0;
+      if (Data_Maybe.Just && m instanceof Data_Maybe.Just) {
+        o.keyPath = m.value0;
+      } else if (Data_Maybe.Nothing && m instanceof Data_Maybe.Nothing) {
       }
     }
 
