@@ -554,7 +554,17 @@ var PS = { };
 
       return db.createObjectStore(name, o);
     }
-  }
+  };
+
+  exports.createIndexNative = function(store, name, keyPath, unique, multiEntry) {
+    return function() {
+      var options = {
+        unique: unique,
+        multiEntry: multiEntry
+      };
+      return store.createIndex(name, keyPath, options);
+    };
+  };
  
 })(PS["IndexedDB"] = PS["IndexedDB"] || {});
 (function(exports) {
@@ -569,6 +579,20 @@ var PS = { };
   var Control_Monad_Eff = PS["Control.Monad.Eff"];
   var Control_Monad_Eff_Exception = PS["Control.Monad.Eff.Exception"];
   var Control_Monad_Cont_Trans = PS["Control.Monad.Cont.Trans"];     
+  var Unique = (function () {
+      function Unique() {
+
+      };
+      Unique.value = new Unique();
+      return Unique;
+  })();
+  var SingleEntry = (function () {
+      function SingleEntry() {
+
+      };
+      SingleEntry.value = new SingleEntry();
+      return SingleEntry;
+  })();
   var KeyPath = (function () {
       function KeyPath(value0) {
           this.value0 = value0;
@@ -578,6 +602,21 @@ var PS = { };
       };
       return KeyPath;
   })();
+  var ArrayIndexPolicy = function (multiEntry) {
+      this.multiEntry = multiEntry;
+  };
+  var Uniqueness = function (unique) {
+      this.unique = unique;
+  };
+  var uniqueUniquess = new Uniqueness(function (_5) {
+      return true;
+  });
+  var unique = function (dict) {
+      return dict.unique;
+  };
+  var singleEntryArrayIndexPolicy = new ArrayIndexPolicy(function (_4) {
+      return false;
+  });
   var open = function (name) {
       return function (version) {
           return function (upgrade) {
@@ -588,6 +627,9 @@ var PS = { };
               });
           };
       };
+  }; 
+  var multiEntry = function (dict) {
+      return dict.multiEntry;
   };
   var createObjectStore = function (db) {
       return function (name) {
@@ -596,9 +638,33 @@ var PS = { };
           };
       };
   };
+  var createIndex = function (__dict_Uniqueness_0) {
+      return function (__dict_ArrayIndexPolicy_1) {
+          return function (name) {
+              return function (store) {
+                  return function (keyPath) {
+                      return function (uniqueness) {
+                          return function (arrays) {
+                              return $foreign.createIndexNative(name, store, keyPath, unique(__dict_Uniqueness_0)(uniqueness), multiEntry(__dict_ArrayIndexPolicy_1)(arrays));
+                          };
+                      };
+                  };
+              };
+          };
+      };
+  };
+  exports["SingleEntry"] = SingleEntry;
+  exports["Unique"] = Unique;
   exports["KeyPath"] = KeyPath;
+  exports["ArrayIndexPolicy"] = ArrayIndexPolicy;
+  exports["Uniqueness"] = Uniqueness;
+  exports["createIndex"] = createIndex;
   exports["createObjectStore"] = createObjectStore;
-  exports["open"] = open;;
+  exports["open"] = open;
+  exports["multiEntry"] = multiEntry;
+  exports["unique"] = unique;
+  exports["singleEntryArrayIndexPolicy"] = singleEntryArrayIndexPolicy;
+  exports["uniqueUniquess"] = uniqueUniquess;;
  
 })(PS["IndexedDB"] = PS["IndexedDB"] || {});
 (function(exports) {
@@ -615,15 +681,16 @@ var PS = { };
   var Control_Monad_Eff_Exception = PS["Control.Monad.Eff.Exception"];     
   var upgrade = function (evt) {
       return function __do() {
+          var _1 = IndexedDB.createObjectStore(evt.db)("hello")(new IndexedDB.KeyPath([ "id", "id2" ]))();
+          var _0 = IndexedDB.createIndex(IndexedDB.uniqueUniquess)(IndexedDB.singleEntryArrayIndexPolicy)(_1)("id3")("id3")(IndexedDB.Unique.value)(IndexedDB.SingleEntry.value)();
           Control_Monad_Eff_Console.log("hi")();
-          var _0 = IndexedDB.createObjectStore(evt.db)("hello")(new IndexedDB.KeyPath([ "id", "id2" ]))();
           return Prelude.unit;
       };
   };
-  var main = Control_Monad_Aff.launchAff(Prelude.bind(Control_Monad_Aff.bindAff)(Control_Monad_Aff.attempt(IndexedDB.open("hi")(1)(upgrade)))(function (_1) {
-      return Data_Either.either(function (_4) {
-          return Control_Monad_Eff_Class.liftEff(Control_Monad_Aff.monadEffAff)(Control_Monad_Eff_Console.print(Control_Monad_Eff_Exception.showError)(_4));
-      })(Prelude["const"](Control_Monad_Eff_Class.liftEff(Control_Monad_Aff.monadEffAff)(Control_Monad_Eff_Console.log("success"))))(_1);
+  var main = Control_Monad_Aff.launchAff(Prelude.bind(Control_Monad_Aff.bindAff)(Control_Monad_Aff.attempt(IndexedDB.open("hi")(1)(upgrade)))(function (_2) {
+      return Data_Either.either(function (_10) {
+          return Control_Monad_Eff_Class.liftEff(Control_Monad_Aff.monadEffAff)(Control_Monad_Eff_Console.print(Control_Monad_Eff_Exception.showError)(_10));
+      })(Prelude["const"](Control_Monad_Eff_Class.liftEff(Control_Monad_Aff.monadEffAff)(Control_Monad_Eff_Console.log("success"))))(_2);
   }));
   exports["main"] = main;
   exports["upgrade"] = upgrade;;

@@ -53,4 +53,14 @@ exports.createObjectStoreNative = function(db, name, options) {
 
     return db.createObjectStore(name, o);
   }
-}
+};
+
+exports.createIndexNative = function(store, name, keyPath, unique, multiEntry) {
+  return function() {
+    var options = {
+      unique: unique,
+      multiEntry: multiEntry
+    };
+    return store.createIndex(name, keyPath, options);
+  };
+};

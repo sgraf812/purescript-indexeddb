@@ -15,8 +15,9 @@ upgrade
    . UpgradeNeededEvent
   -> Eff _ Unit
 upgrade evt = do
-  log "hi"
   store <- IDB.createObjectStore evt.db "hello" (KeyPath ["id", "id2"])
+  index <- IDB.createIndex store "id3" "id3" IDB.Unique IDB.SingleEntry
+  log "hi"
   pure unit
 
 

@@ -1,7 +1,9 @@
 module IndexedDB
-  ( IDB(), Version(), Connection(), Transaction(), ObjectStore()
+  ( IDB(), Version(), Connection(), Transaction(), ObjectStore(), Index()
   , UpgradeNeededEvent(), CreateObjectStoreOptions(..)
-  , open, createObjectStore
+  , Unique(..), NonUnique(..), SingleEntry(..), MultiEntry(..)
+  , Uniqueness, unique, ArrayIndexPolicy, multiEntry
+  , open, createObjectStore, createIndex
   ) where
 
 import Prelude
@@ -20,6 +22,7 @@ foreign import data IDB :: !
 foreign import data Connection :: *
 foreign import data Transaction :: *
 foreign import data ObjectStore :: *
+foreign import data Index :: * -> * -> *
 
 type UpgradeNeededEvent =
   { old :: Version
@@ -32,6 +35,46 @@ type UpgradeNeededEvent =
 data CreateObjectStoreOptions
   = KeyPath (Array String)
   | AutoIncrement (Maybe String)
+
+
+data MultiEntry
+  = MultiEntry
+
+
+data SingleEntry
+  = SingleEntry
+
+
+class ArrayIndexPolicy a where
+  multiEntry :: a -> Boolean
+
+
+instance multiEntryArrayIndexPolicy :: ArrayIndexPolicy MultiEntry where
+  multiEntry _ = true
+
+
+instance singleEntryArrayIndexPolicy :: ArrayIndexPolicy SingleEntry where
+  multiEntry _ = false
+
+
+data Unique
+  = Unique
+
+
+data NonUnique
+  = NonUnique
+
+
+class Uniqueness a where
+  unique :: a -> Boolean
+
+
+instance uniqueUniquess :: Uniqueness Unique where
+  unique _ = true
+
+
+instance uniqueUniqueness :: Uniqueness NonUnique where
+  unique _ = false
 
 
 foreign import openNative
@@ -54,6 +97,17 @@ foreign import createObjectStoreNative
       (Eff (idb :: IDB | eff) ObjectStore)
 
 
+foreign import createIndexNative
+  :: forall eff uniq arrays
+   . Fn5
+      ObjectStore
+      String
+      String
+      Boolean
+      Boolean
+      (Eff (idb :: IDB | eff) (Index uniq arrays))
+
+
 open
   :: forall eff
    . String
@@ -74,3 +128,22 @@ createObjectStore
   -> (Eff (idb :: IDB | eff) ObjectStore)
 createObjectStore db name options =
   runFn3 createObjectStoreNative db name options
+
+
+createIndex
+  :: forall eff uniq arrays
+   . (Uniqueness uniq, ArrayIndexPolicy arrays)
+  => ObjectStore
+  -> String
+  -> String
+  -> uniq
+  -> arrays
+  -> Eff (idb :: IDB | eff) (Index uniq arrays)
+createIndex name store keyPath uniqueness arrays =
+  runFn5
+    createIndexNative
+      name
+      store
+      keyPath
+      (unique uniqueness)
+      (multiEntry arrays)
