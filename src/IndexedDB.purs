@@ -20,7 +20,7 @@ type Version = Int
 -- TODO: Test if some phantom type for the transaction mode is sensible
 foreign import data IDB :: !
 foreign import data Connection :: *
-foreign import data Transaction :: *
+foreign import data Transaction :: * -> *
 foreign import data ObjectStore :: *
 foreign import data Index :: * -> * -> *
 
@@ -28,7 +28,7 @@ type UpgradeNeededEvent =
   { old :: Version
   , new :: Version
   , db :: Connection
-  , transaction :: Transaction
+  , transaction :: Transaction VersionChange
   }
 
 
@@ -75,6 +75,34 @@ instance uniqueUniquess :: Uniqueness Unique where
 
 instance uniqueUniqueness :: Uniqueness NonUnique where
   unique _ = false
+
+
+data ReadOnly
+  = ReadOnly
+
+
+data ReadWrite
+  = ReadWrite
+
+
+data VersionChange
+  = VersionChange
+
+
+class TransactionMode a where
+  transactionMode :: a -> String
+
+
+instance readOnlyTransactionMode :: TransactionMode ReadOnly where
+  transactionMode _ = "readonly"
+
+
+instance readWriteTransactionMode :: TransactionMode ReadWrite where
+  transactionMode _ = "readwrite"
+
+
+instance versionChangeTransactionMode :: TransactionMode VersionChange where
+  transactionMode _ = "versionchange"
 
 
 foreign import openNative
